@@ -12,20 +12,27 @@ include '../../../bootstrap.php';
 
 define('BDUAC', 10);
 define('EXPORT_DIR', SITE_HOME.'/export');
+define('EXPECTED_PATH', 'O:\DIP\onboard');
 
-if (!is_dir(EXPORT_DIR)) { mkdir(EXPORT_DIR, 0755, true); }
+define('FORMAT_PDF', 16);
 
 $table         = new MeetingFilesTable();
 $committee     = new Committee(BDUAC);
 $committeeName = $committee->getName();
+$committeeDir  = EXPORT_DIR."/$committeeName";
 $results       = $table->find(['committee_id' => $committee->getId()]);
-$index         = fopen(EXPORT_DIR."/$committeeName.idx", 'w');
+
+if (!is_dir($committeeDir)) { mkdir($committeeDir, 0755, true); }
+$index = fopen(EXPORT_DIR."/$committeeName.idx", 'w');
+
 foreach ($results as $r) {
+    $format   = FORMAT_PDF;
     $date     = $r->getMeetingDate('Y/m/d');
     $type     = $r->getType();
     $title    = $r->getTitle();
     $filename = $r->getFilename();
-    $dir      = EXPORT_DIR."/$committeeName/$date";
+    $dir      = "$committeeDir/$date";
+    $path     = str_replace('/', '\\', EXPECTED_PATH."/$committeeName/$date");
     $export   = "$dir/$filename";
 
     if (!is_dir($dir)) { mkdir($dir, 0775, true); }
@@ -33,8 +40,8 @@ foreach ($results as $r) {
 
     fwrite($index, "------
 TYPE:   $type
-FORMAT: PDF
-PATH:   $committeeName/$date
+FORMAT: $format
+PATH:   $path
 FILE:   $filename
 BOARD:  $committeeName
 DATE:   $date
